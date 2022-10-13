@@ -62,6 +62,7 @@ class FallDetector:
         #                       help='Save the output video at the path specified. .avi file format.')
 
         args = parser.parse_args()
+        print('args:', type(args))
 
         # Log
         logging.basicConfig(level=logging.INFO if not args.debug else logging.DEBUG)
