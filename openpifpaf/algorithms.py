@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from vis.visual import write_on_image, visualise, activity_dict, visualise_tracking
 from vis.processor import Processor
-from helpers import pop_and_add, last_ip, dist, move_figure, get_hist
+from helpers import pop_and_add, last_ip, dist, move_figure, get_hist, last_valid_hist
 from default_params import *
 from vis.inv_pendulum import *
 import re
@@ -15,6 +15,7 @@ from scipy.signal import savgol_filter, lfilter
 from model.model import LSTMModel
 import torch
 import math
+import sys as _sys
 
 
 def get_source(args):
@@ -45,6 +46,22 @@ def resize(img, resize, resolution):
     width_height = (int(width * resolution // 16) * 16,
                     int(height * resolution // 16) * 16)
     return width, height, width_height
+
+
+def extract_keypoints_single(img):
+    args = _sys.argv[1:]
+    args.resolution = 0.4
+    args.resize = None
+
+    width, height, width_height = resize(img, args.resize, args.resolution)
+    img = cv2.resize(img, (width, height))
+    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    processor_singleton = Processor(width_height, args)
+    keypoint_sets, bb_list, width_height = processor_singleton.single_image(img)
+    print('keypoint_sets,', keypoint_sets)
+    print('bb_list,', keypoint_sets)
+    print('width_height,', width_height)
+    return
 
 
 def extract_keypoints_parallel(queue, args, self_counter, other_counter, consecutive_frames, event):
