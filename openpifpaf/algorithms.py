@@ -56,7 +56,6 @@ def extract_keypoints_single(img, args):
 
     width, height, width_height = resize(img, args.resize, args.resolution)
     img = cv2.resize(img, (width, height))
-    hsv_img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     processor_singleton = Processor(width_height, args)
     keypoint_sets, bb_list, width_height = processor_singleton.single_image(img)
     print('keypoint_sets,', keypoint_sets)

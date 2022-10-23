@@ -17,7 +17,7 @@ args.device = 'cuda'
 args.device = 'cpu'
 print('args:', type(args))
 # image = cv2.imread("/Users/zhangshipeng/Downloads/fall_older.jpeg")
-image = cv2.imread("imgs/1.jpeg")
+image = cv2.imread("imgs/2.jpeg")
 hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 height, width = image.shape[:2]
 # print('image', image)
@@ -58,3 +58,4 @@ img = visualise_tracking(img=image, keypoint_sets=keypoint_sets, width=width, he
 img = write_on_image(img=img, text="test from joker",
                      color=[0, 0, 0])
 cv2.imwrite('output/' + str(time.time()) + '_pose.jpeg', img)
+
