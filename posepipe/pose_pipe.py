@@ -88,7 +88,7 @@ def process_frame(img):
 
 def open_static_photo():
     # 读取图片
-    img0 = cv2.imread("../imgs/1.jpg")
+    img0 = cv2.imread("../imgs/4.png")
     # 因为有中文路径，所以加上此行
     # image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), -1)
     img = img0.copy()
@@ -161,5 +161,17 @@ def detect_yolo():
     print('fps_label:', fps_label)
 
 
+def draw_static_photo():
+    # 读取图片
+    img0 = cv2.imread("../imgs/4.png")
+    # 因为有中文路径，所以加上此行
+    # image = cv2.imdecode(np.fromfile(image_path, dtype=np.uint8), -1)
+    img = img0.copy()
+    # 检测关键点，得到的image是检测过后的图片
+    image = process_frame(img)
+    filename = '../out/mediapipe/annotated_image.png'
+    cv2.imwrite(filename, image)
+
+
 # detect_yolo()
-open_static_photo()
+draw_static_photo()
