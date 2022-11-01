@@ -5,6 +5,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 from openvino.runtime import Core  # the version of openvino >= 2022.1
+
 # import info2openvino as iv
 
 mp_drawing = mp.solutions.drawing_utils
@@ -75,6 +76,7 @@ def process_frame(img):
     fps = 1 / process_time  # 帧率
     colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(33)]
     radius = [random.randint(8, 15) for _ in range(33)]
+    key_point_array.append(keypoints)
     for i in range(33):
         cx, cy = keypoints[i]
         # if i in range(33):
@@ -174,6 +176,9 @@ def draw_static_photo():
     cv2.imwrite(filename, image)
 
 
+key_point_array = []
+
+
 def draw_static_video():
     vid_capture = cv2.VideoCapture('/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4')
     # Obtain frame size information using get() method
@@ -182,7 +187,8 @@ def draw_static_video():
     frame_size = (frame_width, frame_height)
     fps = vid_capture.get(5)
     # Initialize video writer object
-    output = cv2.VideoWriter('/Users/zhangshipeng/Downloads/yolox/2x.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, frame_size)
+    output = cv2.VideoWriter('/Users/zhangshipeng/Downloads/yolox/2x.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps,
+                             frame_size)
     index = 0
     while (vid_capture.isOpened()):
         if index > 900:
@@ -203,7 +209,19 @@ def draw_static_video():
     # Release the objects
     vid_capture.release()
     output.release()
+    f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.json', "wb")
+    for k in key_point_array:
+        f1.write(bytes(str(k), 'utf-8'))
+    f1.close()
 
 
 # detect_yolo()
-draw_static_video()
+# draw_static_video()
+
+key_point_array = [[[[1, 2], [2, 3], [3, 4]], 0],[[[1, 2], [2, 3], [3, 4]], 1]]
+f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
+for k in key_point_array:
+    f1.write(bytes(str(k), 'utf-8'))
+    f1.write(bytes('\n', 'utf-8'))
+
+f1.close()
