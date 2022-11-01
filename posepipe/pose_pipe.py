@@ -5,7 +5,7 @@ import time
 import random
 import matplotlib.pyplot as plt
 from openvino.runtime import Core  # the version of openvino >= 2022.1
-import info2openvino as iv
+# import info2openvino as iv
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -69,6 +69,7 @@ def process_frame(img):
         struction = "NO PERSON"
         img = cv2.putText(img, struction, (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 0),
                           6)
+        return img
     end_time = time.time()
     process_time = end_time - start_time  # 图片关键点预测时间
     fps = 1 / process_time  # 帧率
@@ -173,5 +174,36 @@ def draw_static_photo():
     cv2.imwrite(filename, image)
 
 
+def draw_static_video():
+    vid_capture = cv2.VideoCapture('/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4')
+    # Obtain frame size information using get() method
+    frame_width = int(vid_capture.get(3))
+    frame_height = int(vid_capture.get(4))
+    frame_size = (frame_width, frame_height)
+    fps = vid_capture.get(5)
+    # Initialize video writer object
+    output = cv2.VideoWriter('/Users/zhangshipeng/Downloads/yolox/2x.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps, frame_size)
+    index = 0
+    while (vid_capture.isOpened()):
+        if index > 900:
+            break
+        ret, frame = vid_capture.read()
+        if ret:
+            start = time.time()
+            # Write the frame to the output files
+            image = process_frame(frame)
+            index += 1
+            if cv2.waitKey(1) > -1:
+                print("finished by user")
+                break
+            output.write(image)
+        else:
+            print('Streamisconnected')
+            break
+    # Release the objects
+    vid_capture.release()
+    output.release()
+
+
 # detect_yolo()
-draw_static_photo()
+draw_static_video()

@@ -7,10 +7,10 @@ import yaml
 from openvino.runtime import Core  # the version of openvino >= 2022.1
 
 # 载入COCO Label
-with open('data/joker_fall.yaml', 'r', encoding='utf-8') as f:
-    result = yaml.load(f.read(), Loader=yaml.FullLoader)
-class_list = result['names']
-
+# with open('data/joker_fall.yaml', 'r', encoding='utf-8') as f:
+#     result = yaml.load(f.read(), Loader=yaml.FullLoader)
+# class_list = result['names']
+class_list = ['people']
 # YOLOv5s输入尺寸
 INPUT_WIDTH = 640
 INPUT_HEIGHT = 640
