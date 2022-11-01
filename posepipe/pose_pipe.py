@@ -6,7 +6,7 @@ import random
 import matplotlib.pyplot as plt
 from openvino.runtime import Core  # the version of openvino >= 2022.1
 
-# import info2openvino as iv
+import info2openvino as iv
 
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
@@ -70,13 +70,13 @@ def process_frame(img):
         struction = "NO PERSON"
         img = cv2.putText(img, struction, (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 0),
                           6)
-        return img
+        return img, []
     end_time = time.time()
     process_time = end_time - start_time  # 图片关键点预测时间
     fps = 1 / process_time  # 帧率
     colors = [[random.randint(0, 255) for _ in range(3)] for _ in range(33)]
     radius = [random.randint(8, 15) for _ in range(33)]
-    key_point_array.append(keypoints)
+    # key_point_array.append([keypoints, 0])
     for i in range(33):
         cx, cy = keypoints[i]
         # if i in range(33):
@@ -86,7 +86,7 @@ def process_frame(img):
                 tl / 3, (255, 0, 0), thickness=tf)'''
     cv2.putText(img, "FPS-{}".format(str(int(fps))), (12, 100), cv2.FONT_HERSHEY_SIMPLEX,
                 tl / 3, (255, 255, 0), thickness=tf)
-    return img
+    return img, keypoints
 
 
 def open_static_photo():
@@ -180,14 +180,21 @@ key_point_array = []
 
 
 def draw_static_video():
-    vid_capture = cv2.VideoCapture('/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4')
+    # f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
+    f1 = open('D:\data/fdu\deep_learn_source/fall_detection/key_points.txt', "wb")
+    model_path = 'D:\data/fdu\deep_learn_source\exp12\weights/best_openvino_model/best.xml'
+    ie = Core()  # Initialize Core version>=2022.1
+    net = ie.compile_model(model=model_path, device_name="AUTO")
+    # source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', '/Users/zhangshipeng/Downloads/yolox/2x.mp4'
+    source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/50ways2fall.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/2x.mp4'
+    vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
     frame_width = int(vid_capture.get(3))
     frame_height = int(vid_capture.get(4))
     frame_size = (frame_width, frame_height)
     fps = vid_capture.get(5)
     # Initialize video writer object
-    output = cv2.VideoWriter('/Users/zhangshipeng/Downloads/yolox/2x.mp4', cv2.VideoWriter_fourcc(*'mp4v'), fps,
+    output = cv2.VideoWriter(target_file, cv2.VideoWriter_fourcc(*'mp4v'), fps,
                              frame_size)
     index = 0
     while (vid_capture.isOpened()):
@@ -197,7 +204,25 @@ def draw_static_video():
         if ret:
             start = time.time()
             # Write the frame to the output files
-            image = process_frame(frame)
+            image, keypoints = process_frame(frame)
+            inputImage = iv.format_yolov5(image)
+            resized_image = cv2.resize(src=inputImage, dsize=(640, 640))
+            outs = iv.detect(resized_image, net)
+            class_ids, confidences, boxes = iv.wrap_detection(inputImage, outs[0])
+            fall_flag = 0
+            # 显示检测框bbox
+            for (classid, confidence, box) in zip(class_ids, confidences, boxes):
+                color = colors[int(classid) % len(colors)]
+                cv2.rectangle(frame, box, color, 2)
+                cv2.rectangle(frame, (box[0], box[1] - 20), (box[0] + box[2], box[1]), color, -1)
+                cv2.putText(frame, class_list[classid] + str(round(confidence, 2)), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0))
+                if classid== 1:
+                    cv2.putText(frame, "warning: fall detected ", (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (10, 10, 200), 1)
+                    fall_flag = 1
+            if len(keypoints) > 0:
+                f1.write(bytes(str([keypoints, fall_flag]), 'utf-8'))
+                f1.write(bytes('\n', 'utf-8'))
+
             index += 1
             if cv2.waitKey(1) > -1:
                 print("finished by user")
@@ -209,19 +234,8 @@ def draw_static_video():
     # Release the objects
     vid_capture.release()
     output.release()
-    f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.json', "wb")
-    for k in key_point_array:
-        f1.write(bytes(str(k), 'utf-8'))
     f1.close()
 
 
 # detect_yolo()
-# draw_static_video()
-
-key_point_array = [[[[1, 2], [2, 3], [3, 4]], 0],[[[1, 2], [2, 3], [3, 4]], 1]]
-f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
-for k in key_point_array:
-    f1.write(bytes(str(k), 'utf-8'))
-    f1.write(bytes('\n', 'utf-8'))
-
-f1.close()
+draw_static_video()
