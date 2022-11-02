@@ -186,7 +186,7 @@ def draw_static_video():
     ie = Core()  # Initialize Core version>=2022.1
     net = ie.compile_model(model=model_path, device_name="AUTO")
     # source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', '/Users/zhangshipeng/Downloads/yolox/2x.mp4'
-    source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/50ways2fall.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/2x.mp4'
+    source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-01-cam1.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-01-cam1x.mp4'
     vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
     frame_width = int(vid_capture.get(3))
@@ -198,8 +198,8 @@ def draw_static_video():
                              frame_size)
     index = 0
     while (vid_capture.isOpened()):
-        if index > 900:
-            break
+        # if index > 900:
+        #     break
         ret, frame = vid_capture.read()
         if ret:
             start = time.time()
