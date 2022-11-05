@@ -17,7 +17,7 @@ args.device = 'cuda'
 args.device = 'cpu'
 print('args:', type(args))
 # image = cv2.imread("/Users/zhangshipeng/Downloads/fall_older.jpeg")
-image = cv2.imread("imgs/2.jpeg")
+image = cv2.imread('D:\data/fdu\deep_learn_source/fall_detection/222fakk.jpg')
 hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 height, width = image.shape[:2]
 # print('image', image)

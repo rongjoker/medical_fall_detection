@@ -48,6 +48,17 @@ def open_webcam():
     cap.release()
 
 
+def get_box(keypoints):
+    joint_scales = 2
+    kps = np.array(keypoints)
+    # print('type:', type(kps))
+    # print(kps[:, 0])
+    x = np.min(kps[:, 0])
+    y = np.min(kps[:, 1])
+    w = np.max(kps[:, 0] ) - x
+    h = np.max(kps[:, 1] ) - y
+    return [x, y, w, h]
+
 def process_frame(img):
     start_time = time.time()
     h, w = img.shape[0], img.shape[1]  # 高和宽
@@ -59,18 +70,20 @@ def process_frame(img):
     # 将RGB图像输入模型，获取 关键点 预测结果
     results = pose.process(img_RGB)
     keypoints = ['' for i in range(33)]
+    bb_box = []
     if results.pose_landmarks:
         mp_drawing.draw_landmarks(img, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
         for i in range(33):
             cx = int(results.pose_landmarks.landmark[i].x * w)
             cy = int(results.pose_landmarks.landmark[i].y * h)
-            keypoints[i] = (cx, cy)  # 得到最终的33个关键点
+            keypoints[i] = [cx, cy]  # 得到最终的33个关键点
+        bb_box = get_box(keypoints)
     else:
         print("NO PERSON")
         struction = "NO PERSON"
         img = cv2.putText(img, struction, (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 0),
                           6)
-        return img, []
+        return img, [], []
     end_time = time.time()
     process_time = end_time - start_time  # 图片关键点预测时间
     fps = 1 / process_time  # 帧率
@@ -86,7 +99,7 @@ def process_frame(img):
                 tl / 3, (255, 0, 0), thickness=tf)'''
     cv2.putText(img, "FPS-{}".format(str(int(fps))), (12, 100), cv2.FONT_HERSHEY_SIMPLEX,
                 tl / 3, (255, 255, 0), thickness=tf)
-    return img, keypoints
+    return img, keypoints, bb_box
 
 
 def open_static_photo():
@@ -180,13 +193,15 @@ key_point_array = []
 
 
 def draw_static_video():
+    painter = KeypointPainter()
     # f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
     f1 = open('D:\data/fdu\deep_learn_source/fall_detection/key_points.txt', "wb")
     model_path = 'D:\data/fdu\deep_learn_source\exp12\weights/best_openvino_model/best.xml'
     ie = Core()  # Initialize Core version>=2022.1
     net = ie.compile_model(model=model_path, device_name="AUTO")
     # source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', '/Users/zhangshipeng/Downloads/yolox/2x.mp4'
-    source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-01-cam1.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-01-cam1x.mp4'
+    # source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-03-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/3x.mp4'
+    source_file, target_file = 'D:\迅雷下载/fall-20-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-20-cam0x.mp4'
     vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
     frame_width = int(vid_capture.get(3))
@@ -198,28 +213,40 @@ def draw_static_video():
                              frame_size)
     index = 0
     while (vid_capture.isOpened()):
-        # if index > 900:
-        #     break
+        if index > 900:
+            break
         ret, frame = vid_capture.read()
         if ret:
             start = time.time()
             # Write the frame to the output files
-            image, keypoints = process_frame(frame)
-            inputImage = iv.format_yolov5(image)
-            resized_image = cv2.resize(src=inputImage, dsize=(640, 640))
-            outs = iv.detect(resized_image, net)
-            class_ids, confidences, boxes = iv.wrap_detection(inputImage, outs[0])
             fall_flag = 0
-            # 显示检测框bbox
-            for (classid, confidence, box) in zip(class_ids, confidences, boxes):
-                color = colors[int(classid) % len(colors)]
-                cv2.rectangle(frame, box, color, 2)
-                cv2.rectangle(frame, (box[0], box[1] - 20), (box[0] + box[2], box[1]), color, -1)
-                cv2.putText(frame, class_list[classid] + str(round(confidence, 2)), (box[0], box[1] - 10), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0))
-                if classid== 1:
-                    cv2.putText(frame, "warning: fall detected ", (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5, (10, 10, 200), 1)
-                    fall_flag = 1
+            image, keypoints, bb_box = process_frame(frame)
+
+            # yolo
+            # inputImage = iv.format_yolov5(image)
+            # resized_image = cv2.resize(src=inputImage, dsize=(640, 640))
+            # outs = iv.detect(resized_image, net)
+            # class_ids, confidences, boxes = iv.wrap_detection(inputImage, outs[0])
+            # fall_flag = 0
+            # # 显示检测框bbox
+            # for (classid, confidence, box) in zip(class_ids, confidences, boxes):
+            #     color = colors[int(classid) % len(colors)]
+            #     cv2.rectangle(frame, box, color, 2)
+            #     cv2.rectangle(frame, (box[0], box[1] - 20), (box[0] + box[2], box[1]), color, -1)
+            #     cv2.putText(frame, class_list[classid] + str(round(confidence, 2)), (box[0], box[1] - 10),
+            #                 cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0))
+            #     if classid == 1:
+            #         cv2.putText(frame, "warning: fall detected ", (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5,
+            #                     (10, 10, 200), 1)
+            #         fall_flag = 1
+            # yolo end
             if len(keypoints) > 0:
+                ans = [KeypointNode(keypoints, bb_box)]
+                fall_flag = painter.annotations_detect(annotations=ans, fps= 30)
+                # print('fall_flag:', fall_flag)
+                cv2.rectangle(frame, bb_box, (255, 255, 0), 2)
+                cv2.putText(frame, "fall detected count: " + str(fall_flag), (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5,
+                                                (10, 10, 200), 1)
                 f1.write(bytes(str([keypoints, fall_flag]), 'utf-8'))
                 f1.write(bytes('\n', 'utf-8'))
 
@@ -235,6 +262,104 @@ def draw_static_video():
     vid_capture.release()
     output.release()
     f1.close()
+
+
+class KeypointNode:
+    def __init__(self,  keypoints, bb_box):
+        self.keypoints = keypoints
+        self.bb_box = bb_box
+
+
+class KeypointPainter:
+
+    from tracker import CentroidTracker
+    from falldetector import FallDetector
+    from collections import defaultdict, OrderedDict
+
+    ct = CentroidTracker()
+    falls = FallDetector()
+    persons = OrderedDict()
+    fallen = OrderedDict()
+    prev_fallen = OrderedDict()
+    framecount = 0
+    fallcount = 0
+    centroid = -1
+    xy_scale = 1.0
+
+    def annotations_detect(self, annotations, fps):
+        centroids = []
+
+        for i, ann in enumerate(annotations):
+            self.centroid = -1
+            self.annotation(ann)
+            if self.centroid != -1:
+                centroids.append(self.centroid)
+
+        self.persons = self.ct.update(centroids, fps)
+
+        # for ID, (x, y, x_, y_, w_, h_) in self.persons.items():
+        #     self._draw_centroids(ax, ID, x, y, color)
+
+        # fall detection
+        self.fallen = self.falls.update(self.persons, self.framecount, fps)
+
+        for ID, (x_, y_, w_, h_) in self.fallen.items():
+            # self._draw_box(ax, x_, y_, w_, h_, color='red')
+
+            if ID not in self.prev_fallen:
+                self.fallcount += 1
+                print("FALL COUNT: ", self.fallcount)
+
+                # CODE TO SAVE RESULTS TO JPG
+                # self.imgwriter.write(stream, self.fallcount)
+
+        self.prev_fallen = self.fallen
+
+        # self._draw_fallcount(ax, self.fallcount)
+        self.framecount += 1
+
+        return self.fallcount
+
+    def annotation(self, ann):
+
+        kps = np.array(ann.keypoints)
+        x = kps[:, 0] * self.xy_scale
+        y = kps[:, 1] * self.xy_scale
+
+        x_, y_, w_, h_ = ann.bb_box
+
+        if w_ < 5.0:
+            x_ -= 2.0
+            w_ += 4.0
+        if h_ < 5.0:
+            y_ -= 2.0
+            h_ += 4.0
+        self._draw_skeleton( x, y, x_, y_, w_, h_)
+
+    def _draw_skeleton(self,  x, y,  x_, y_, w_, h_):
+
+        if x[5] != 0 and x[6] == 0:
+            mid_x = x[5]
+        elif x[5] == 0 and x[6] != 0:
+            mid_x = x[6]
+        elif x[5] != 0 and x[6] != 0:
+            mid_x = (x[5] + x[6]) / 2
+        else:
+            mid_x = 0
+
+        if y[5] != 0 and y[6] == 0:
+            mid_y = y[5]
+        elif y[5] == 0 and y[6] != 0:
+            mid_y = y[6]
+        elif y[5] != 0 and y[6] != 0:
+            mid_y = (y[5] + y[6]) / 2
+        else:
+            mid_y = 0
+
+        if mid_x != 0 and mid_y != 0:
+            self.centroid = (mid_x, mid_y, x_, y_, w_, h_)
+        else:
+            self.centroid = -1
 
 
 # detect_yolo()
