@@ -12,6 +12,7 @@ class FallDetector:
     
     def update(self, persons, framecount, fps):
         self.falls = OrderedDict()
+        fall_flag = 0
         
         for ID, (x, y, x_, y_, w_, h_) in persons.items():
             if framecount == 0:
@@ -23,6 +24,7 @@ class FallDetector:
 
                     if w_ >= 1.2*h_:
                         if fall:
+                            fall_flag = 1
                             self.falls[ID] = (x_, y_, w_, h_)
                         
                         elif math.sqrt(pow(abs(x-old_x), 2)+pow((y-old_y), 2)) >= 0.5*math.sqrt(pow(old_w, 2)+pow(old_h, 2)):
@@ -39,6 +41,6 @@ class FallDetector:
                 else:
                     self.old_persons[ID] = (x, y, w_, h_, False)
                     
-        return self.falls
+        return self.falls, fall_flag
                 
                 

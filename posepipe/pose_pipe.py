@@ -195,13 +195,13 @@ key_point_array = []
 def draw_static_video():
     painter = KeypointPainter()
     # f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
-    f1 = open('D:\data/fdu\deep_learn_source/fall_detection/key_points.txt', "wb")
-    model_path = 'D:\data/fdu\deep_learn_source\exp12\weights/best_openvino_model/best.xml'
-    ie = Core()  # Initialize Core version>=2022.1
-    net = ie.compile_model(model=model_path, device_name="AUTO")
-    # source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', '/Users/zhangshipeng/Downloads/yolox/2x.mp4'
+    f1 = open('D:\data/fdu\deep_learn_source/fall_detection/50ways2fall.txt', "wb")
+    # model_path = 'D:\data/fdu\deep_learn_source\exp12\weights/best_openvino_model/best.xml'
+    # ie = Core()  # Initialize Core version>=2022.1
+    # net = ie.compile_model(model=model_path, device_name="AUTO")
+    source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/50ways2fall.mp4'
     # source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-03-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/3x.mp4'
-    source_file, target_file = 'D:\迅雷下载/fall-20-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-20-cam0x.mp4'
+    # source_file, target_file = 'D:\迅雷下载/fall-04-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-04-cam0x.mp4'
     vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
     frame_width = int(vid_capture.get(3))
@@ -213,7 +213,7 @@ def draw_static_video():
                              frame_size)
     index = 0
     while (vid_capture.isOpened()):
-        if index > 900:
+        if index > 1800:
             break
         ret, frame = vid_capture.read()
         if ret:
@@ -242,7 +242,7 @@ def draw_static_video():
             # yolo end
             if len(keypoints) > 0:
                 ans = [KeypointNode(keypoints, bb_box)]
-                fall_flag = painter.annotations_detect(annotations=ans, fps= 30)
+                fall_count ,fall_flag = painter.annotations_detect(annotations=ans, fps= 30)
                 # print('fall_flag:', fall_flag)
                 cv2.rectangle(frame, bb_box, (255, 255, 0), 2)
                 cv2.putText(frame, "fall detected count: " + str(fall_flag), (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5,
@@ -301,7 +301,7 @@ class KeypointPainter:
         #     self._draw_centroids(ax, ID, x, y, color)
 
         # fall detection
-        self.fallen = self.falls.update(self.persons, self.framecount, fps)
+        self.fallen, fall_flag = self.falls.update(self.persons, self.framecount, fps)
 
         for ID, (x_, y_, w_, h_) in self.fallen.items():
             # self._draw_box(ax, x_, y_, w_, h_, color='red')
@@ -318,7 +318,7 @@ class KeypointPainter:
         # self._draw_fallcount(ax, self.fallcount)
         self.framecount += 1
 
-        return self.fallcount
+        return self.fallcount, fall_flag
 
     def annotation(self, ann):
 
