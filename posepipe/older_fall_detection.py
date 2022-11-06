@@ -70,8 +70,6 @@ def detect():
     painter = KeypointPainter()
     # f1 = open('/Users/zhangshipeng/Downloads/yolox//key_points.txt', "wb")
     f1 = open('D:\data/fdu\deep_learn_source/fall_detection/key_points.txt', "wb")
-    # source_file, target_file = '/Users/zhangshipeng/Downloads/yolox/50ways2fall.mp4', '/Users/zhangshipeng/Downloads/yolox/2x.mp4'
-    # source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-03-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/3x.mp4'
     source_file, target_file = 'D:\迅雷下载/fall-20-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/fall-20-cam0x.mp4'
     vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
@@ -84,8 +82,6 @@ def detect():
                              frame_size)
     index = 0
     while (vid_capture.isOpened()):
-        if index > 900:
-            break
         ret, frame = vid_capture.read()
         if ret:
             start = time.time()
