@@ -81,8 +81,8 @@ def process_frame(img):
     else:
         print("NO PERSON")
         struction = "NO PERSON"
-        img = cv2.putText(img, struction, (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 0),
-                          6)
+        # img = cv2.putText(img, struction, (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (255, 255, 0),
+        #                   6)
         return img, [], []
     end_time = time.time()
     process_time = end_time - start_time  # 图片关键点预测时间
@@ -97,8 +97,10 @@ def process_frame(img):
     '''str_pose = get_pos(keypoints)            #获取姿态
     cv2.putText(img, "POSE-{}".format(str_pose), (12, 100), cv2.FONT_HERSHEY_TRIPLEX,
                 tl / 3, (255, 0, 0), thickness=tf)'''
-    cv2.putText(img, "FPS-{}".format(str(int(fps))), (12, 100), cv2.FONT_HERSHEY_SIMPLEX,
-                tl / 3, (255, 255, 0), thickness=tf)
+    # cv2.putText(img, "FPS-{}".format(str(int(fps))), (12, 100), cv2.FONT_HERSHEY_SIMPLEX,
+    #             0.5, (255, 255, 0), thickness=tf)
+    cv2.putText(img, "FPS-{}".format(str(int(fps))), (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5,
+                (255, 255, 0), 1)
     return img, keypoints, bb_box
 
 
@@ -201,7 +203,9 @@ def draw_static_video():
     # net = ie.compile_model(model=model_path, device_name="AUTO")
     # source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/50ways2fall.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/50ways2fallx.mp4'
     # source_file, target_file = 'D:\data/fdu\deep_learn_source/fall_detection/fall-03-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/3x.mp4'
-    source_file, target_file = 'D:\迅雷下载/adl-04-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/adl-04-cam0x.mp4'
+    source_file, target_file = 'D:\迅雷下载/aef70ef44b27e521dafba21fcce67191.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/9000x.mp4'
+    # fall-09-cam0.mp4
+    # source_file, target_file = 'D:/Users/Administrator/PycharmProjects/falldetection_openpifpaf-master/test/input/fall-17-cam0.mp4', 'D:\data/fdu\deep_learn_source/fall_detection/9008x.mp4'
     vid_capture = cv2.VideoCapture(source_file)
     # Obtain frame size information using get() method
     frame_width = int(vid_capture.get(3))
@@ -211,9 +215,10 @@ def draw_static_video():
     # Initialize video writer object
     output = cv2.VideoWriter(target_file, cv2.VideoWriter_fourcc(*'mp4v'), fps,
                              frame_size)
+    fall_count_prev = 0
     index = 0
     while (vid_capture.isOpened()):
-        if index > 2400:
+        if index > 900:
             break
         ret, frame = vid_capture.read()
         if ret:
@@ -245,8 +250,13 @@ def draw_static_video():
                 fall_count ,fall_flag = painter.annotations_detect(annotations=ans, fps= 30)
                 # print('fall_flag:', fall_flag)
                 cv2.rectangle(frame, bb_box, (255, 255, 0), 2)
-                cv2.putText(frame, "fall detected count: " + str(fall_flag), (15, 45), cv2.FONT_HERSHEY_COMPLEX, 0.5,
+                # fall_count = max(fall_count_prev, fall_count)
+                # fall_count_prev = fall_count
+                cv2.putText(frame, "fall detected count: " + str(fall_count), (25, 100), cv2.FONT_HERSHEY_COMPLEX, 1,
                                                 (10, 10, 200), 1)
+
+                # cv2.putText(frame, "person fall detected count", (25, 100), cv2.FONT_HERSHEY_SIMPLEX, 1.25, (10, 10, 200),
+                #                               6)
                 f1.write(bytes(str([fall_count, fall_flag]), 'utf-8'))
                 f1.write(bytes('\n', 'utf-8'))
 
